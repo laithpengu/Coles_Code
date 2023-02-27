@@ -139,15 +139,15 @@ plt.show()
 
 #part 5
 trials = [10, 1000, 100000]
-bin_edges = np.arange(-15.5, 15, 1)
+bin_edges = np.arange(-10.5, 10, .5)
 fig, axis = plt.subplots(3, 1)
 plt.suptitle("Section 3.5: PDF for Gaussian")
 plt.subplots_adjust(hspace = .5)
 plot = 0
 for trial in trials:
     ## data
-    data = np.random.normal(loc = -1, scale = 4, size = trial)
-    x = np.linspace(-15, 15, 100)
+    data = np.random.normal(loc = -1, scale = 2, size = trial)
+    x = np.linspace(-10, 10, 100)
 
     ## math
     mean = np.mean(data)
@@ -157,7 +157,7 @@ for trial in trials:
     ## plot
     axis[plot].hist(data, bins = bin_edges, density = True, edgecolor = "black", label = "histogram")
     axis[plot].set_title("Graph 5.%d: %d trials" % ((plot + 1), trial))
-    axis[plot].plot(x, sp.stats.norm.pdf(x, loc = -1, scale = 4), label = "PDF")
+    axis[plot].plot(x, sp.stats.norm.pdf(x, loc = -1, scale = 2), label = "PDF")
     axis[plot].grid()
     axis[plot].legend()
     axis[plot].set_xlabel("k")
@@ -166,3 +166,6 @@ for trial in trials:
 plt.show()
 
 # part 6
+x = np.random.normal(loc = -1, scale = 2, size = 10000)
+data = np.where(x >= -1 and x < .5, x)
+prob = data.size() / 10000
