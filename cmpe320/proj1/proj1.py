@@ -108,7 +108,7 @@ plt.show()
 
 #part 4
 trials = [10, 1000, 100000]
-bin_edges = np.arange(-4, 4, .1)
+bin_edges = np.arange(-4.05, 4, .1)
 fig, axis = plt.subplots(3, 1)
 plt.suptitle("Section 3.4: PDF for Gaussian")
 plt.subplots_adjust(hspace = .5)
@@ -139,7 +139,7 @@ plt.show()
 
 #part 5
 trials = [10, 1000, 100000]
-bin_edges = np.arange(-10.5, 10, .5)
+bin_edges = np.arange(-10.25, 10, .5)
 fig, axis = plt.subplots(3, 1)
 plt.suptitle("Section 3.5: PDF for Gaussian")
 plt.subplots_adjust(hspace = .5)
@@ -165,7 +165,10 @@ for trial in trials:
     plot += 1
 plt.show()
 
+
 # part 6
 x = np.random.normal(loc = -1, scale = 2, size = 10000)
-data = np.where(x >= -1 and x < .5, x)
-prob = data.size() / 10000
+count = np.count_nonzero(np.logical_and(x >= -2, x < .5))
+prob1 = count / 10000
+prob2 = sp.integrate.quad(lambda y: sp.stats.norm.pdf(y, loc = -1, scale = 2), -2, .5)
+print("3.6 Prob 1: %s Prob 2: %s" % (prob1, prob2))
