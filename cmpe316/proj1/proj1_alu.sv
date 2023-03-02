@@ -60,28 +60,28 @@ module proj1_alu (
         if (opcode_q == 8'b0000XX00) begin // lsl
             data_o_d[15:8]  <= 8'b0;
             data_o_d[7:1]   <= data_rd_q[6:0];
-            data_0_d[0]     <= 0;
+            data_o_d[0]     <= 0;
             zo_d            <= !data_o_d[7] & !data_o_d[6] & !data_o_d[5] & !data_o_d[4] & !data_o_d[3] & !data_o_d[2] & !data_o_d[1] & !data_o_d[0];
             no_d            <= data_o_d[7];
             co_d            <= data_rd_q[7];
         end else if (opcode_q == 8'b0000XX01) begin // asr
             data_o_d[15:8]  <= 8'b0;
             data_o_d[7]     <= data_rd_q[7];
-            data_0_d[6:0]   <= data_rd_q[7:1];
+            data_o_d[6:0]   <= data_rd_q[7:1];
             zo_d            <= !data_o_d[7] & !data_o_d[6] & !data_o_d[5] & !data_o_d[4] & !data_o_d[3] & !data_o_d[2] & !data_o_d[1] & !data_o_d[0];
             no_d            <= data_o_d[7];
             co_d            <= data_rd_q[0];
         end else if (opcode_q == 8'b0000XX10) begin // rol
             data_o_d[15:8]  <= 8'b0;
             data_o_d[7:1]   <= data_rd_q[6:0];
-            data_0_d[0]     <= ci_q;
+            data_o_d[0]     <= ci_q;
             zo_d            <= !data_o_d[7] & !data_o_d[6] & !data_o_d[5] & !data_o_d[4] & !data_o_d[3] & !data_o_d[2] & !data_o_d[1] & !data_o_d[0];
             no_d            <= data_o_d[7];
             co_d            <= data_rd_q[7];
         end else if (opcode_q == 8'b0000XX11) begin // ror
             data_o_d[15:8]  <= 8'b0;
             data_o_d[7]     <= ci_q;
-            data_0_d[6:0]   <= data_rd_q[7:1];
+            data_o_d[6:0]   <= data_rd_q[7:1];
             zo_d            <= !data_o_d[7] & !data_o_d[6] & !data_o_d[5] & !data_o_d[4] & !data_o_d[3] & !data_o_d[2] & !data_o_d[1] & !data_o_d[0];
             no_d            <= data_o_d[7];
             co_d            <= data_rd_q[0];
