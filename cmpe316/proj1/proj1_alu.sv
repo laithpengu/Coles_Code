@@ -39,10 +39,10 @@ module proj1_alu (
                 data_rd_q   <= 8'b0;
                 data_rr_q   <= 8'b0;
                 opcode_q    <= 8'b0;
-                ci_q        <= 0;
-                co_q        <= 0;
-                no_q        <= 0;
-                zo_q        <= 0;
+                ci_q        <= 1'b0;
+                co_q        <= 1'b0;
+                no_q        <= 1'b0;
+                zo_q        <= 1'b0;
             end else begin
                 data_o_q    <= data_o_d;
                 data_rd_q   <= data_rd_d;
@@ -109,34 +109,35 @@ module proj1_alu (
             co_d            = 0;
         end else if (opcode_q === 8'b1011XX00) begin // neg
             data_o_d[15:8]  = 8'b0;
-            data_o_d[7:0]   = ~data_rd_q + 8'b1;
+            data_o_d[7:0]   = data_rd_q ^ 8'b111111111;
+            data_o_d[7:0]   = data_o_d[7:0] + 1;
             zo_d            = 0;
             no_d            = 0;
             co_d            = 0;
         end else if (opcode_q === 8'b1100XXXX) begin // add
-            data_o_d[15:8]  <= 16'b0;
-            data_o_d[7:0]   <= data_rd_q + data_rd_q;
-            zo_d            <= !data_o_d[7] & !data_o_d[6] & !data_o_d[5] & !data_o_d[4] & !data_o_d[3] & !data_o_d[2] & !data_o_d[1] & !data_o_d[0];
-            no_d            <= data_o_d[7];
-            co_d            <= (data_rd_q[7] & data_rr_q[7]) | (data_rd_q[7] & !data_o_d[7]) | (data_rr_q[7] & !data_o_d[7]);
+            data_o_d[15:8]  = 16'b0;
+            data_o_d[7:0]   = data_rd_q + data_rr_q;
+            zo_d            = !data_o_d[7] & !data_o_d[6] & !data_o_d[5] & !data_o_d[4] & !data_o_d[3] & !data_o_d[2] & !data_o_d[1] & !data_o_d[0];
+            no_d            = data_o_d[7];
+            co_d            = (data_rd_q[7] & data_rr_q[7]) | (data_rd_q[7] & !data_o_d[7]) | (data_rr_q[7] & !data_o_d[7]);
         end else if (opcode_q === 8'b1101XXXX) begin // addc
-            data_o_d[15:8]  <= 16'b0;
-            data_o_d[7:0]   <= data_rd_q + data_rd_q + ci_q;
-            zo_d            <= !data_o_d[7] & !data_o_d[6] & !data_o_d[5] & !data_o_d[4] & !data_o_d[3] & !data_o_d[2] & !data_o_d[1] & !data_o_d[0];
-            no_d            <= data_o_d[7];
-            co_d            <= (data_rd_q[7] & data_rr_q[7]) | (data_rd_q[7] & !data_o_d[7]) | (data_rr_q[7] & !data_o_d[7]);
+            data_o_d[15:8]  = 16'b0;
+            data_o_d[7:0]   = data_rd_q + data_rr_q + ci_q;
+            zo_d            = !data_o_d[7] & !data_o_d[6] & !data_o_d[5] & !data_o_d[4] & !data_o_d[3] & !data_o_d[2] & !data_o_d[1] & !data_o_d[0];
+            no_d            = data_o_d[7];
+            co_d            = (data_rd_q[7] & data_rr_q[7]) | (data_rd_q[7] & !data_o_d[7]) | (data_rr_q[7] & !data_o_d[7]);
         end else if (opcode_q === 8'b1110XXXX) begin // sub
-            data_o_d[15:8]  <= 16'b0;
-            data_o_d[7:0]   <= data_rd_q - data_rd_q;
-            zo_d            <= !data_o_d[7] & !data_o_d[6] & !data_o_d[5] & !data_o_d[4] & !data_o_d[3] & !data_o_d[2] & !data_o_d[1] & !data_o_d[0];
-            no_d            <= data_o_d[7];
-            co_d            <= (!data_rd_q[7] & data_rr_q[7]) | (!data_rd_q[7] & data_o_d[7]) | (data_rr_q[7] & data_o_d[7]);
+            data_o_d[15:8]  = 16'b0;
+            data_o_d[7:0]   = data_rd_q - data_rr_q;
+            zo_d            = !data_o_d[7] & !data_o_d[6] & !data_o_d[5] & !data_o_d[4] & !data_o_d[3] & !data_o_d[2] & !data_o_d[1] & !data_o_d[0];
+            no_d            = data_o_d[7];
+            co_d            = (!data_rd_q[7] & data_rr_q[7]) | (!data_rd_q[7] & data_o_d[7]) | (data_rr_q[7] & data_o_d[7]);
         end else if (opcode_q === 8'b1111XXXX) begin // subc
-            data_o_d[15:8]  <= 16'b0;
-            data_o_d[7:0]   <= data_rd_q - data_rd_q - ci;
-            zo_d            <= !data_o_d[7] & !data_o_d[6] & !data_o_d[5] & !data_o_d[4] & !data_o_d[3] & !data_o_d[2] & !data_o_d[1] & !data_o_d[0];
-            no_d            <= data_o_d[7];
-            co_d            <= (!data_rd_q[7] & data_rr_q[7]) | (!data_rd_q[7] & data_o_d[7]) | (data_rr_q[7] & data_o_d[7]);
+            data_o_d[15:8]  = 16'b0;
+            data_o_d[7:0]   = data_rd_q - data_rr_q - ci;
+            zo_d            = !data_o_d[7] & !data_o_d[6] & !data_o_d[5] & !data_o_d[4] & !data_o_d[3] & !data_o_d[2] & !data_o_d[1] & !data_o_d[0];
+            no_d            = data_o_d[7];
+            co_d            = (!data_rd_q[7] & data_rr_q[7]) | (!data_rd_q[7] & data_o_d[7]) | (data_rr_q[7] & data_o_d[7]);
         end
     end
 endmodule
