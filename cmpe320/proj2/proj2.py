@@ -11,7 +11,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import scipy as sp
 
-# Part 2.1: Model R
+
+# PART 2.1: MODEL R
 
 # Find Values
 PrA = 0.5
@@ -47,18 +48,84 @@ axis[1].grid()
 
 plt.show()
 
-# Part 2.2: Method 1
 
-# Find S
-s = 2 * np.where(r >= 0, r, 0) # s = kR when R >= 0. k = 2
+# PART 2.2: METHOD 1
+
+# Find S and fS
+k = 2
+s = k * np.where(r >= 0, r, 0) # s = kR when R >= 0. k = 2
+fs = (1 / (k * 2 * np.sqrt(2 * np.pi * sigma2))) * (np.exp(-(((s / k) - a) ** 2) / (2 * sigma2)) + np.exp(-(((s / k) + a) ** 2) / (2 * sigma2)))
+
+# Sort so fs is plotable
+order = np.argsort(s)
+xs = np.array(s)[order]
+yfs = np.array(fs)[order]
 
 # Subplot Setup
 fig, axis = plt.subplots(2, 1)
 plt.suptitle("Section 2.2: Method 1")
 plt.subplots_adjust(hspace = .5)
 
-# Scatter test
+# Scatter S vs R
 axis[0].scatter(r, s)
+
+# Histogram pdf vs Analytical pdf
+axis[1].hist(s, density = True, edgecolor = "black")
+axis[1].plot(xs, yfs, 'r')
+axis[1].stem(0, .5, linefmt = 'r', markerfmt = 'r')
 
 plt.show()
 
+
+# PART 2.3: METHOD 2
+
+# find S
+k = 2
+s = k * np.where(r >= 0, r, abs(r))
+fs = (1 / (k * 2 * np.sqrt(2 * np.pi * sigma2))) * (np.exp(-(((s / k) - a) ** 2) / (2 * sigma2)) + np.exp(-(((s / k) + a) ** 2) / (2 * sigma2)))
+
+# Sort so fs is plotable
+order = np.argsort(s)
+xs = np.array(s)[order]
+yfs = np.array(fs)[order]
+
+# Subplot Setup
+fig, axis = plt.subplots(2, 1)
+plt.suptitle("Section 2.3: Method 2")
+plt.subplots_adjust(hspace = .5)
+
+# Scatter S vs R
+axis[0].scatter(r, s)
+
+# Histogram pdf vs Analytical pdf
+axis[1].hist(s, density = True, edgecolor = "black")
+axis[1].plot(xs, yfs, 'r')
+
+plt.show()
+
+
+# PART 2.4: METHOD 3
+
+# find S
+k = 2
+s = k * r ** 2
+fs = (1 / (k * 2 * np.sqrt(2 * np.pi * sigma2))) * (np.exp(-(((s / k) - a) ** 2) / (2 * sigma2)) + np.exp(-(((s / k) + a) ** 2) / (2 * sigma2)))
+
+# Sort so fs is plotable
+order = np.argsort(s)
+xs = np.array(s)[order]
+yfs = np.array(fs)[order]
+
+# Subplot Setup
+fig, axis = plt.subplots(2, 1)
+plt.suptitle("Section 2.4: Method 3")
+plt.subplots_adjust(hspace = .5)
+
+# Scatter S vs R
+axis[0].scatter(r, s)
+
+# Histogram pdf vs Analytical pdf
+axis[1].hist(s, density = True, edgecolor = "black")
+axis[1].plot(xs, yfs, 'r')
+
+plt.show()
