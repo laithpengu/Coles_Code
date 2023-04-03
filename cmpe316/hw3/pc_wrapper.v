@@ -3,8 +3,10 @@ module programcounter (
     input   wire            BTNR, // button reset
     input   wire            BTNC, // button count
     input   wire            BTNL, // jump or jumpc button
-    input   wire            BTNU // call command
-    input   wire            BTND); // return command
+    input   wire            BTNU, // call command
+    input   wire            BTND, // return command
+    input   wire    [7:0]   sw,
+    output  wire    [7:0]   inst_o); 
 
     wire    inc;
     wire    jmp;
@@ -20,7 +22,7 @@ module programcounter (
     assign  call = BTNU & ~BTNU_q;
     assign  ret = BTND & ~BTND_q;
 
-    always_ff @(posedge clk or posedge BTNR) begin
+    always @(posedge clk or posedge BTNR) begin
         if (BTNR) begin
             BTNC_q  <= 1'b0;
             BTNL_q  <= 1'b0;
@@ -34,9 +36,9 @@ module programcounter (
         end
     end
 
-    // internal address wiring
-    wire    [7:0]   sv;
-    wire    [7:0]   adout;
+    // internal wiring
+    wire    [7:0]   prog_count;
+    wire    [7:0]   inst;
 
     programcounter programcounter (
         .clk(clk),
@@ -44,11 +46,14 @@ module programcounter (
         .inc(inc),
         .call(call),
         .ret(ret)
-        .
-        );
+        .addr_in(sw)
+        .data_o(prog_count)
+    );
 
-    blk_mem blk_mem(
-        
-        );
+    blk_mem_gen_0 u_inst_sram(
+        .clka(clk)
+        .addra(prog_count)
+        .douta(inst)
+    );
 
 endmodule
