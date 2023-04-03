@@ -17,7 +17,6 @@ module programcounter (
     always @(posedge clk or posedge rst) begin
         if (rst) begin
             adout_q <= 8'b0;
-            ret_reg <= 8'b0;
         end else begin
             adout_q <= adout_d;
         end
@@ -25,16 +24,16 @@ module programcounter (
 
     always_comb begin
         if (inc) begin
-            adout_d <= adout_d + 1;
+            adout_d = adout_d + 1;
         end else if (jmp) begin
-            adout_d <= addr_in;
+            adout_d = addr_in;
         end else if (call) begin
             ret_reg = adout_d;
             adout_d = addr_in;
         end else if (ret) begin
-            adout_d <= ret_reg + 2;
+            adout_d = ret_reg + 2;
         end else if (rst) begin
-            adout_d <= 0;
+            adout_d = 0;
         end
     end    
 
