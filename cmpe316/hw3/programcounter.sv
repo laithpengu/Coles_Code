@@ -10,30 +10,37 @@ module programcounter (
 
     logic   [7:0]   adout_d;
     logic   [7:0]   adout_q;
-    logic   [7:0]   ret_reg;
+    logic   [7:0]   ret_reg_d;
+    logic   [7:0]   ret_reg_q;
 
-    assign  adout = adout_q
+    assign  adout = adout_q;
 
-    always @(posedge clk or posedge rst) begin
-        if (rst) begin
-            adout_q <= 8'b0;
-        end else begin
-            adout_q <= adout_d;
+    // output flipflop
+    always_ff @(posedge clk or posedge rst) 
+        begin
+            if (rst) begin
+                adout_q     <= 8'b00000000;
+                ret_reg_q   <= 8'b00000000;
+            end else begin
+                adout_q     <= adout_d;
+                ret_reg_q   <= ret_reg_d;
+            end
         end
-    end
 
+    // combinational logic
     always_comb begin
-        if (inc) begin
-            adout_d = adout_d + 1;
-        end else if (jmp) begin
-            adout_d = addr_in;
-        end else if (call) begin
-            ret_reg = adout_d;
-            adout_d = addr_in;
-        end else if (ret) begin
-            adout_d = ret_reg + 2;
-        end else if (rst) begin
-            adout_d = 0;
+        if (inc) begin // increment command
+            adout_d = adout_q + 1;
+        end else if (jmp) begin // jump command
+            adout_d = addr_in + 1;
+        end else if (call) begin // call command
+            ret_reg_d = adout_q;
+            adout_d = addr_in + 1;
+        end else if (ret) begin // return command
+            adout_d = ret_reg_q + 2;
+        end else begin // hold value
+            adout_d = adout_q;
+            ret_reg_d = ret_reg_q;
         end
     end    
 

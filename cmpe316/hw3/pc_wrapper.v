@@ -1,4 +1,4 @@
-module programcounter (
+module pc_wrapper (
     input   wire            clk, // clock input
     input   wire            BTNR, // button reset
     input   wire            BTNC, // button count
@@ -17,6 +17,7 @@ module programcounter (
     reg     BTNU_q;
     reg     BTND_q;
 
+    // button edge detect code
     assign  inc = BTNC & ~BTNC_q;
     assign  jmp = BTNL & ~BTNL_q;
     assign  call = BTNU & ~BTNU_q;
@@ -38,22 +39,29 @@ module programcounter (
 
     // internal wiring
     wire    [7:0]   prog_count;
-    wire    [7:0]   inst;
+    wire    [7:0]   dina;
+    wire            wea;
+    assign dina = 8'b00000000;
+    assign wea = 1'b0;
 
+    // module instantiation
     programcounter programcounter (
         .clk(clk),
         .rst(BTNR),
         .inc(inc),
+        .jmp(jmp),
         .call(call),
-        .ret(ret)
-        .addr_in(sw)
-        .data_o(prog_count)
+        .ret(ret),
+        .addr_in(sw),
+        .adout(prog_count)
     );
 
     blk_mem_gen_0 u_inst_sram(
-        .clka(clk)
-        .addra(prog_count)
-        .douta(inst)
+        .clka(clk),
+        .addra(prog_count),
+        .douta(inst_o),
+        .dina(dina),
+        .wea(wea)
     );
 
 endmodule
