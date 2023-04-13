@@ -31,13 +31,16 @@ module programcounter (
     always_comb begin
         if (inc) begin // increment command
             adout_d = adout_q + 1;
+            ret_reg_d = ret_reg_q;
         end else if (jmp) begin // jump command
             adout_d = addr_in + 1;
+            ret_reg_d = ret_reg_q;
         end else if (call) begin // call command
             ret_reg_d = adout_q;
             adout_d = addr_in + 1;
         end else if (ret) begin // return command
             adout_d = ret_reg_q + 2;
+            ret_reg_d = ret_reg_q;
         end else begin // hold value
             adout_d = adout_q;
             ret_reg_d = ret_reg_q;

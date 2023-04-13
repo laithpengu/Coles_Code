@@ -5,8 +5,8 @@ module pc_wrapper (
     input   wire            BTNL, // jump or jumpc button
     input   wire            BTNU, // call command
     input   wire            BTND, // return command
-    input   wire    [7:0]   sw,
-    output  wire    [7:0]   inst_o); 
+    input   wire    [7:0]   sw, // switch input
+    output  wire    [7:0]   inst_o); // instruction output
 
     wire    inc;
     wire    jmp;
@@ -17,7 +17,7 @@ module pc_wrapper (
     reg     BTNU_q;
     reg     BTND_q;
 
-    // button edge detect code
+    // button edge detect and register code
     assign  inc = BTNC & ~BTNC_q;
     assign  jmp = BTNL & ~BTNL_q;
     assign  call = BTNU & ~BTNU_q;
