@@ -88,11 +88,11 @@ for sum in sum_size:
     xs = np.sum(xd, 0)
 
     # Create Gaussian PDF
-    xr = np.arange(start = 0, stop = sum, step = .002)
+    xr = np.arange(start = 0, stop = sum * 8, step = .002)
     yr = sp.stats.norm.pdf(xr, sum * 2 / .5, sum * (1/12))
 
     # Plot
-    bin_edges = np.arange(start = 2, stop = sum * 3, step = .1)
+    bin_edges = np.arange(start = 2, stop = sum * 4, step = .1)
     axis[sum_size.index(sum)].hist(xs, bins = bin_edges, density = True, edgecolor = "black", label = "Histogram")
     axis[sum_size.index(sum)].plot(xr, yr, 'r', label = "PDF")
 
@@ -106,7 +106,7 @@ sum_size = [4, 8, 150]
 
 # Subplot Setup
 fig, axis = plt.subplots(3, 1)
-plt.suptitle("Section 2.1: IID Random Variables")
+plt.suptitle("Section 2.4: IID Random Variables")
 plt.subplots_adjust(hspace = .5)
 
 # Data and Plot Loop
@@ -115,15 +115,14 @@ for sum in sum_size:
     xd = np.random.rand(sum, m)
     xd = np.where(xd > .6, 1, 0)
     xs = np.sum(xd, 0)
-    print (xd)
 
     # Create Gaussian PDF
-    xr = np.arange(start = 0, stop = sum, step = .002)
+    xr = np.arange(start = 0, stop = sum * 2, step = .01)
     yr = sp.stats.norm.pdf(xr, sum / 2, sum * (1/12))
 
 
     # Plot
-    bin_edges = np.arange(start = 0, stop = sum, step = .1)
+    bin_edges = np.arange(start = 0, stop = sum, step = 1)
     axis[sum_size.index(sum)].hist(xs, bins = bin_edges, density = True, edgecolor = "black", label = "Histogram")
     axis[sum_size.index(sum)].plot(xr, yr, 'r', label = "PDF")
 
