@@ -44,7 +44,7 @@ bin_edges = np.arange(-.5, 25, 1)
 fig, axis = plt.subplots(3, 3)
 plt.suptitle("Section 3.2: PMF for binary strings")
 plt.subplots_adjust(hspace = .5)
-plot = 0;
+plot = 0
 for prob in probs:
     for len in lens:
         ## create data
