@@ -8,15 +8,15 @@
  */
 
 module reg_file(
-    input   logic           clk;        // clock
-    input   logic   [1:0]   wr_addr;    // write address
-    input   logic   [7:0]   wr_data;    // write data
-    input   logic           wr_en;      // write enable
-    input   logic   [1:0]   rda_addr;   // read address a
-    input   logic   [1:0]   rdb_addr;   // read address b
-    input   logic           rst;        // reset
-    output  logic   [7:0]   rda_data;   // read data a
-    output  logic   [7:0]   rdb_data;   // read data b
+    input   logic           clk,        // clock
+    input   logic   [1:0]   wr_addr,    // write address
+    input   logic   [7:0]   wr_data,    // write data
+    input   logic           wr_en,      // write enable
+    input   logic   [1:0]   rda_addr,   // read address a
+    input   logic   [1:0]   rdb_addr,   // read address b
+    input   logic           rst,        // reset
+    output  logic   [7:0]   rda_data,   // read data a
+    output  logic   [7:0]   rdb_data   // read data b
     );
 
     // Create FF Wires
@@ -29,6 +29,16 @@ module reg_file(
     logic   [7:0]   rda_data_q;
     logic   [7:0]   rdb_data_d;
     logic   [7:0]   rdb_data_q;
+
+    // Register Logic
+    logic   [7:0]   reg0_d;
+    logic   [7:0]   reg0_q;
+    logic   [7:0]   reg1_d;
+    logic   [7:0]   reg1_q;
+    logic   [7:0]   reg2_d;
+    logic   [7:0]   reg2_q;
+    logic   [7:0]   reg3_d;
+    logic   [7:0]   reg3_q;
 
     // Assign FF in or out
     assign  rda_data    = rda_data_q;
@@ -52,8 +62,8 @@ module reg_file(
             wr_addr_q   = wr_addr;
             wr_data_q   = wr_data;
             wr_en_q     = wr_en;
-            rda_addr_q  = rda_addr_q;
-            rdb_addr_q  = rdb_addr_q;
+            rda_addr_q  = rda_addr;
+            rdb_addr_q  = rdb_addr;
             rda_data_q  = rda_data_d;
             rdb_data_q  = rdb_data_d;
             reg0_q      = reg0_d;
@@ -62,17 +72,6 @@ module reg_file(
             reg3_q      = reg3_d;
         end
     end
-
-    // Register Logic
-    logic   [7:0]   reg0_d;
-    logic   [7:0]   reg0_q;
-    logic   [7:0]   reg1_d;
-    logic   [7:0]   reg1_q;
-    logic   [7:0]   reg2_d;
-    logic   [7:0]   reg2_q;
-    logic   [7:0]   reg3_d;
-    logic   [7:0]   reg3_q;
-
 
     always_comb begin
         // read address A logic 

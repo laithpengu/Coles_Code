@@ -13,9 +13,7 @@ module reg_wrapper (
     input   wire            BTNC, // button center (write enable)
     input   wire    [13:0]  SW, // switch input ([7:0] write data, [9:8] wr addr, [11:10] rda addr, [13:12] rdb addr)
     output  wire    [7:0]   data_o, // data output
-    output  wire            LED0, // Led output 0(carry flag out)
-    output  wire            LED1, // Led output 1(zero flag out)
-    output  wire            LED2); // Led output 2(neg flag out)
+    output  wire    [2:0]   LED); // Led output 
 
     // ff logic
     wire    wr_en;
@@ -39,34 +37,34 @@ module reg_wrapper (
     wire    [7:0]   opcode;
     wire            ci;
 
-    assign  opcode  = 8'b?;
+    assign  opcode  = 8'b10010000;
     assign  ci      = 1'b0;
 
 
     // instantiate modules
     reg_file reg_file (
-        .clk(clk);
-        .wr_addr(SW[9:8]);
-        .wr_data(SW[7:1]);
-        .wr_en(wr_en);
-        .rda_addr(SW[11:10]);
-        .rdb_addr(SW[13:12]);
-        .rst(BTNR);
-        .rda_data(rda_data);
-        .rdb_data(rdb_data);
+        .clk(clk),
+        .wr_addr(SW[9:8]),
+        .wr_data(SW[7:1]),
+        .wr_en(wr_en),
+        .rda_addr(SW[11:10]),
+        .rdb_addr(SW[13:12]),
+        .rst(BTNR),
+        .rda_data(rda_data),
+        .rdb_data(rdb_data)
     );
 
     alu alu (
-        .clk(clk);
-        .rst(BTNR);
-        .data_rd(rda_data);
-        .data_rr(rdb_data);
-        .opcode(opcode);
-        .ci(ci);
-        .data_o(data_o);
-        .co(LED0);
-        .zo(LED1);
-        .no(LED2);
+        .clk(clk),
+        .rst(BTNR),
+        .data_rd(rda_data),
+        .data_rr(rdb_data),
+        .opcode(opcode),
+        .ci(ci),
+        .data_o(data_o),
+        .co(LED[0]),
+        .zo(LED[1]),
+        .no(LED[2])
     );
 
 endmodule
