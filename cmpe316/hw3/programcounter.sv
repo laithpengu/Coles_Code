@@ -33,11 +33,11 @@ module programcounter (
             adout_d = adout_q + 1;
             ret_reg_d = ret_reg_q;
         end else if (jmp) begin // jump command
-            adout_d = addr_in + 1;
+            adout_d = addr_in;
             ret_reg_d = ret_reg_q;
         end else if (call) begin // call command
             ret_reg_d = adout_q;
-            adout_d = addr_in + 1;
+            adout_d = addr_in;
         end else if (ret) begin // return command
             adout_d = ret_reg_q + 2;
             ret_reg_d = ret_reg_q;

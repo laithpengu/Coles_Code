@@ -37,7 +37,7 @@ module reg_wrapper (
     wire    [7:0]   opcode;
     wire            ci;
 
-    assign  opcode  = 8'b10010000;
+    assign  opcode  = 8'b10000000;
     assign  ci      = 1'b0;
 
 
@@ -45,7 +45,7 @@ module reg_wrapper (
     reg_file reg_file (
         .clk(clk),
         .wr_addr(SW[9:8]),
-        .wr_data(SW[7:1]),
+        .wr_data(SW[7:0]),
         .wr_en(wr_en),
         .rda_addr(SW[11:10]),
         .rdb_addr(SW[13:12]),
