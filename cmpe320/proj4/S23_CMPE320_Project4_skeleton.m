@@ -102,7 +102,7 @@ for kP0=1:length(p0all)   % loop on all the values of p0
    % we can use the same message array for all of the signal to noise
    % values, but need different messages for different values of p0 (why?)
    
-    
+     
 %Loop on SNR, gamma
 
     for kSNR=1:length(gamma)

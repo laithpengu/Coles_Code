@@ -68,30 +68,31 @@ function* seq[] = {seq1};
 
 unsigned long startMillis;
 unsigned long currentMillis;
-int clk = 9; // set clock pin
-int data = 10; // set data out pin
-int en = 11; // set enable data pin
-funcName station = AZ;
-int seq_num = 0;
-state curr_state;
-state next_state;
-int clk_count;
-int seq_count;
-int fun_count;
-int ser_count;
-int currStartTime;
-int* currFuncTime;
-int currFunLen;
-String val;
+int clk = 9;                  // set clock pin
+int data = 10;                // set data out pin
+int en = 11;                  // set enable data pin
+funcName station = AZ;        // station id global
+int seq_num = 0;              // sequence id global
+state curr_state;             // current output state
+state next_state;             // next output state
+int clk_count;                // current clock cycle counter
+int seq_count;                // subsequence counter
+int fun_count;                // subfunction counter
+int ser_count;                // bit output counter
+int currStartTime;            // start of current function
+int* currFuncTime;            // array of function timing
+int currFunLen;               // len of current function
+String dataString;            // current output string
 
 void setup() {
-    clk_count = 0; // init clock counter
-    seq_count = 0; // init sequence counter
-    fun_count = 0; // init funciton counter
-    ser_count = 0;
+    clk_count = 170;          // init clock counter
+    seq_count = 0;            // init sequence counter
+    fun_count = 0;            // init funciton counter
+    ser_count = 0;            // init serial counter
     curr_state = seqCheck;
     next_state = seqCheck;
     currStartTime = 0;
+    dataString = "00000000";
     startMillis = millis();
     if (station == AZ) {
       currFuncTime = *AZtimes;
@@ -150,12 +151,12 @@ void loop() {
             Serial.print(clk_count - currStartTime);
             Serial.print(": ");
             if (currFuncTime[fun_count + 1] == 0) {
-              val = "00000000";
+              dataString = "00000000";
             } else {
-              val = String(currFuncTime[fun_count + 1]);
+              dataString = String(currFuncTime[fun_count + 1]);
             };
-            Serial.println(val[ser_count]);
-            if (val == "0") {
+            Serial.println(dataString.charAt(ser_count));
+            if (dataString.charAt(ser_count) == '0') {
               digitalWrite(data, LOW);
             } else {
               digitalWrite(data, HIGH);
@@ -169,9 +170,11 @@ void loop() {
     {
         delayMicroseconds(1);
         currentMillis = millis();
-    } while (currentMillis - startMillis < 10UL);
-    digitalWrite(clk, !digitalRead(clk));
+    } while (currentMillis - startMillis < 10);
+    startMillis = currentMillis;
+    digitalWrite(clk, HIGH);
+    delayMicroseconds(10);
+    digitalWrite(clk, LOW);
     clk_count++;
     curr_state = next_state;
-    startMillis = currentMillis;
 }
