@@ -99,7 +99,8 @@ void setup() {
       currFunLen = AZlen;
     }
     Serial.begin(9600);
-}
+    delay(10000);
+};
 
 void loop() {
     // get current time
@@ -120,28 +121,63 @@ void loop() {
         } else {
             // end 
         }
-            
     } else if (curr_state == funCheck) {
         // check if function is over
         if (fun_count < (currFunLen * 2)) {
             // check if 9 before next function timing
-            if (fun_count == 0 && clk_count == (currStartTime - 9)) {
+            if (fun_count == 0) {
+              if (clk_count == (currStartTime - 9)) {
                 next_state = loadBit;
+                Serial.print(clk_count - currStartTime);
+                Serial.print(": ");
                 Serial.println("Enable Out");
                 digitalWrite(en, HIGH);
+                if (currFuncTime[fun_count + 1] == 0) {
+                  dataString = "00000000";
+                } else {
+                  dataString = String(currFuncTime[fun_count + 1]);
+                };
+                Serial.print(clk_count - currStartTime);
+                Serial.print(": ");
+                Serial.println(dataString.charAt(ser_count));
+                if (dataString.charAt(ser_count) == '0') {
+                  digitalWrite(data, LOW);
+                } else {
+                  digitalWrite(data, HIGH);
+                };
+                ser_count++;
+              };
             } else if (clk_count == (currFuncTime[fun_count] + currStartTime - 9)) {
-                next_state = loadBit;
-                Serial.println("Enable Out");
-                digitalWrite(en, HIGH);
+              next_state = loadBit;
+              Serial.print(clk_count - currStartTime);
+              Serial.print(": ");
+              Serial.println("Enable Out");
+              digitalWrite(en, HIGH);
+              if (currFuncTime[fun_count + 1] == 0) {
+                dataString = "00000000";
+              } else {
+                dataString = String(currFuncTime[fun_count + 1]);
+              };
+              Serial.print(clk_count - currStartTime);
+              Serial.print(": ");
+              Serial.println(dataString.charAt(ser_count));
+              if (dataString.charAt(ser_count) == '0') {
+                digitalWrite(data, LOW);
+              } else {
+                digitalWrite(data, HIGH);
+              };
+              ser_count++;
             };
         } else {
-            // return to seq_check
-            next_state = seqCheck;
+          // return to seq_check
+          next_state = seqCheck;
         };
     } else if (curr_state == loadBit) {
         if (ser_count == 8) {
             // return to funCheck and increment function
             ser_count = 0;
+            Serial.print(clk_count - currStartTime);
+            Serial.print(": ");
             Serial.println("End Out");
             digitalWrite(en, LOW);
             fun_count = fun_count + 2;
@@ -150,11 +186,6 @@ void loop() {
             // output current bit
             Serial.print(clk_count - currStartTime);
             Serial.print(": ");
-            if (currFuncTime[fun_count + 1] == 0) {
-              dataString = "00000000";
-            } else {
-              dataString = String(currFuncTime[fun_count + 1]);
-            };
             Serial.println(dataString.charAt(ser_count));
             if (dataString.charAt(ser_count) == '0') {
               digitalWrite(data, LOW);
@@ -170,7 +201,7 @@ void loop() {
     {
         delayMicroseconds(1);
         currentMillis = millis();
-    } while (currentMillis - startMillis < 10);
+    } while (currentMillis - startMillis < .02);
     startMillis = currentMillis;
     digitalWrite(clk, HIGH);
     delayMicroseconds(10);
