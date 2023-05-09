@@ -39,6 +39,7 @@ p0 = p0all[1] # from 2023 Assignment,  p0 # 0.5 is MAP
 gamma_dB = 10
 gamma = 10 ** (gamma_dB / 10)
 sigma2 = a ** 2 / gamma # per definition gamma = A^2/sigma^2 so sigma^2 = A^2/gamma
+print(sigma2)
 Ntrials = 500000 # sufficient trials for this exercise
 thld_MAP = (sigma2 / 4) * np.log((1 - p0) / p0) # use your derivation of the MAP threshold
 
@@ -111,7 +112,7 @@ for kp0 in range(len(p0all)):   # loop on all the values of p0
         # create sigma2 for this value of gamma, use the power ratio,
         # not gamma_dB
         sigma2 = a ** 2 / gamma[kSNR]
-
+        print(sigma2)
         # then create sigma 
         sigma = np.sqrt(sigma2)
            

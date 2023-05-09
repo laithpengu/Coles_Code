@@ -7,7 +7,7 @@
  *
  */
 
-module cpu_wrapper(
+module cpu(
     input   wire            clk, // clock input
     input   wire    [15:0]  SW, // input all switches
     input   wire            BTNC, // rden
@@ -17,7 +17,7 @@ module cpu_wrapper(
     // ff logic
     wire    rd_en;
     reg     BTNC_q;
-
+ 
     // assign inputs and outputs
     assign  rd_en = BTNC & ~BTNC_q;
 
@@ -30,59 +30,125 @@ module cpu_wrapper(
         end
     end
 
+    // interconnect logic
+    wire            inc;
+    wire            jmp;
+    wire            call;
+    wire            ret;
+    wire    [7:0]   pcaddr_in;
+    wire    [7:0]   pcaddr_o;
+    wire    [7:0]   inst;
+    wire    [7:0]   regdata_rda;
+    wire    [7:0]   regdata_rdb;
+    wire    [1:0]   regaddr_wr;
+    wire    [7:0]   regdata_wr;
+    wire            regwr_en;
+    wire    [1:0]   regaddr_rda;
+    wire    [1:0]   regaddr_rdb;
+    wire    [7:0]   memdata_o;
+    wire    [7:0]   memaddr;
+    wire    [7:0]   memdata_in;
+    wire            memwr_en;
+    wire    [7:0]   aludata_rd;
+    wire    [7:0]   aludata_rr;
+    wire    [7:0]   alu_opcode;
+    wire            alu_ci;
+    wire    [15:0]  aludata_o;
+    wire            alu_co;
+    wire            alu_zo;
+    wire            alu_no;
+    wire    [7:0]   iodata_wr;
+    wire            iowr_en;
+
+
     // instantiate modules
     alu alu (
         .clk(clk),
         .rst(BTNR),
-        .data_rd(),
-        .data_rr(),
-        .opcode(),
-        .ci(),
-        .data_o(),
-        .co(),
-        .zo(),
-        .no()
+        .data_rd(aludata_rd),
+        .data_rr(aludata_rr),
+        .opcode(alu_opcode),
+        .ci(alu_ci),
+        .data_o(aludata_o),
+        .co(alu_co),
+        .zo(alu_zo),
+        .no(alu_no)
     );
 
-    programcounter programcount (
+    programcounter programcounter (
         .clk(clk),
         .rst(BTNR),
-        .inc(),
-        .jmp(),
-        .call(),
-        .ret(),
-        .addr_in(),
-        .adout()
+        .inc(inc),
+        .jmp(jmp),
+        .call(call),
+        .ret(ret),
+        .addr_in(pcaddr_in),
+        .adout(pcaddr_o)
     );
 
-    controllogic
+    controllogic controllogic (
+        .clk(clk),
+        .rst(BTNR),
+        .inst(inst),
+        .inc(inc),
+        .jmp(jmp),
+        .call(call),
+        .ret(ret),
+        .regdata_rda(regdata_rda),
+        .regdata_rdb(regdata_rdb),
+        .regaddr_wr(regaddr_wr),
+        .regdata_wr(regdata_wr),
+        .regwr_en(regwr_en),
+        .regaddr_rda(regaddr_rda),
+        .regaddr_rdb(regaddr_rdb),
+        .memdata_o(memdata_o),
+        .memaddr(memaddr),
+        .memdata_in(memdata_in),
+        .memwr_en(memwr_en),
+        .alu_co(alu_co),
+        .alu_zo(alu_zo),
+        .alu_no(alu_no),
+        .aludata_o(aludata_o),
+        .alu_opcode(alu_opcode),
+        .alu_ci(alu_ci),
+        .aludata_rd(aludata_rd),
+        .aludata_rr(aludata_rr),
+        .iodata_wr(iodata_wr),
+        .iowr_en(iowr_en)
+    );
 
     reg_file reg_file (
         .clk(clk),
-        .wr_addr(),
-        .wr_data(),
-        .wr_en(),
-        .rda_addr(),
-        .rdb_addr(),
+        .wr_addr(regaddr_wr),
+        .wr_data(regdata_wr),
+        .wr_en(regwr_en),
+        .rda_addr(regaddr_rda),
+        .rdb_addr(regaddr_rdb),
         .rst(rst),
-        .rda_data(),
-        .rdb_data()
+        .rda_data(regdata_rda),
+        .rdb_data(regdata_rdb)
     );
 
-    blk_mem_gen_0 u_inst_sram (
+    u_inst_sram u_inst_sram (
         .clka(clk),
-        .addra(prog_count),
-        .douta(inst_o),
-        .dina(dina),
-        .wea(wea)
+        .addra(pcaddr_o),
+        .douta(inst),
+        .ena(1'b1)
     );
 
-    blk_mem_gen0 data_mem ();
+    data_mem data_mem (
+        .clka(clk),
+        .addra(memaddr),
+        .dina(memdata_in),
+        .douta(memdata_o),
+        .ena(1'b1),
+        .wea(memwr_en)
+    );
 
     io_reg io_reg (
         .clk(clk),
-        .wr_data(),
-        .wr_en(),
+        .wr_data(memdata_o),
+        .wr_en(1'b1),
         .rd_data(data)
     );
 
