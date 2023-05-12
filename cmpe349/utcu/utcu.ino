@@ -85,6 +85,9 @@ int currFunLen;               // len of current function
 String dataString;            // current output string
 
 void setup() {
+    pinMode(clk, OUTPUT);
+    pinMode(data, OUTPUT);
+    pinMode(en, OUTPUT);
     clk_count = 170;          // init clock counter
     seq_count = 0;            // init sequence counter
     fun_count = 0;            // init funciton counter
@@ -120,6 +123,7 @@ void loop() {
             }
         } else {
             // end 
+            exit(0);
         }
     } else if (curr_state == funCheck) {
         // check if function is over
