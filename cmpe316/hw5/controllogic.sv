@@ -35,12 +35,11 @@ module controllogic(
     output   logic           alu_ci,
     output   logic   [7:0]   aludata_rd,
     output   logic   [7:0]   aludata_rr,
-    output   logic   [7:0]   iodata_wr,
     output   logic           iowr_en
     );
 
 
-    enum {idle, wait_state0, wait_state1, ld, wr0, wr1} curr_state, next_state, ret_state;
+    enum {idle, wait_state0, wait_state1, ld, wr0, wr1, rd0, rd1} curr_state, next_state, ret_state;
 
     logic   [7:0]   opcode_d;
     logic   [7:0]   opcode_q;
@@ -71,10 +70,15 @@ module controllogic(
                         casez (inst) 
                             8'b0011??00:    begin // LD 
                                             ret_state = ld;
-
                                             end
                             8'b0001????:    begin // wr
                                             ret_state = wr0;
+                                            end
+                            8'b0010????:    begin // rd
+                                            ret_state = rd0;
+                                            end    
+                            8'b011100??:    begin // wrio
+                                            ret_state = wrio0;
                                             end
                         endcase
                         end
@@ -82,6 +86,7 @@ module controllogic(
             wait_state0:begin // wait state
                         regwr_en = 1'b0;
                         memwr_en = 1'b0;
+                        iowr_en = 1'b0;-
                         next_state = ret_state;
                         end
 
@@ -124,6 +129,50 @@ module controllogic(
                         ret_state = idle;
                         end
 
+            rd0:        begin // read state 1
+                        // set sram addr
+                        memaddr = opcode_q[1:0];
+
+                        // wait 1 and ret
+                        next_state = wait_state0;
+                        ret_state = rd1;
+                        end
+
+            rd1:        begin
+                        // set reg input to sram out
+                        regaddr_wr = opcode_q[3:2];
+                        regdata_wr = memdata_o;
+
+                        // set write en
+                        regwr_en = 1'b1;
+
+                        // wait and end write en
+                        next_state = wait_state0;
+                        ret_state = idle;
+
+                        end
+            
+            wrio0:      begin
+                        // set sram address
+                        memaddr = opcode_q[1:0];
+
+                        // wait 1 
+                        next_state = wait_state0;
+                        ret_state = wrio1;
+                        end
+
+            wrio1:      begin
+                        // enable io wr
+                        iowr_en = 1'b1;
+
+                        // wait 1 and disable
+                        next_state = wait_state0;
+                        ret_state = idle;
+                        end
+
+            jmp0:       begin
+                        
+                        end
         endcase
     end
 endmodule

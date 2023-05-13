@@ -113,7 +113,6 @@ module cpu(
         .alu_ci(alu_ci),
         .aludata_rd(aludata_rd),
         .aludata_rr(aludata_rr),
-        .iodata_wr(iodata_wr),
         .iowr_en(iowr_en)
     );
 
@@ -148,7 +147,7 @@ module cpu(
     io_reg io_reg (
         .clk(clk),
         .wr_data(memdata_o),
-        .wr_en(1'b1),
+        .wr_en(iowr_en),
         .rd_data(data)
     );
 
