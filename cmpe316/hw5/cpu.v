@@ -94,6 +94,7 @@ module cpu(
         .jmp(jmp),
         .call(call),
         .ret(ret),
+        .pcaddr_in(pcaddr_in),
         .regdata_rda(regdata_rda),
         .regdata_rdb(regdata_rdb),
         .regaddr_wr(regaddr_wr),
@@ -113,7 +114,8 @@ module cpu(
         .alu_ci(alu_ci),
         .aludata_rd(aludata_rd),
         .aludata_rr(aludata_rr),
-        .iowr_en(iowr_en)
+        .iowr_en(iowr_en),
+        .data_in(data)
     );
 
     reg_file reg_file (

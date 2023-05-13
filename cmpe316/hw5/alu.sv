@@ -71,7 +71,7 @@ module alu (
                       data_o_d = {8'd0, ci_q, data_rd_q[7:1]};                 // ROR
 		      co_d  = data_rd_q[0];
 		    end
-      8'b0100???? : begin
+      8'b0110???? : begin
                       data_o_d = data_rd_q * data_rr_q;                           // MULT
 		      co_d  = data_o_d[15];
 		    end
