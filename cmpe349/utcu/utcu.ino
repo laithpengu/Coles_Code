@@ -77,16 +77,16 @@ int BAZtimes[23][2] = {{0, 10000001}, // preamble
           {2048, 10000011}, // rear oci
           {2176, 10000101}, // left oci
           {2304, 10000111}, // right oci
-          {2432, 00000001}, // to test
+          {2432, 00000000}, // to test
           {2560, 10111011}, // to scan
           {6760, 00000000}, // pause
           {7360, 10010000}, // fro scan
-          {11560, 00000001},
+          {11560, 00000000},
           {11688, 00000000}};  // end fro
 
 // EL Function 1100001
 int ELlen = 19;
-int ELtimes[19][2] = {{0, 10000000}, // preamble
+int ELtimes[19][2] = {{0, 10000001}, // preamble
 	        {832, 11000000}, // barker code
 	        {896, 11000000},
         	{960, 11000000},
@@ -122,13 +122,13 @@ function seq2[] = {{EL, 0},
                   {AZ, 10900},
                   {EMPTY, 26800},
                   {EL, 32100},
-                  // {DW1, 37700}, // add data word
+                  {EMPTY, 37700}, // add data word
                   {EL, 55800},
                   {EMPTY, 61400}};
 
 // define whole sequence
 function* seq[] = {seq1, seq2};
-int seqstart[] = {0, 67700};
+int seqstart[] = {10, 67710};
 
 
 
@@ -157,7 +157,7 @@ void setup() {
     pinMode(clk, OUTPUT);
     pinMode(data, OUTPUT);
     pinMode(en, OUTPUT);
-    clk_count = 170;          // init clock counter
+    clk_count = 0;          // init clock counter
     seq_count = 0;            // init sequence counter
     fun_count = 0;            // init funciton counter
     ser_count = 0;            // init serial counter
@@ -166,10 +166,16 @@ void setup() {
     currStartTime = 0;
     dataString = "00000000";
     startMillis = millis();
-    dpsk = "0";
+    dpsk = '0';
     if (station == AZ) {
       currFuncTime = *AZtimes;
       currFunLen = AZlen;
+    } else if (station == EL) {
+      currFuncTime = *ELtimes;
+      currFunLen = ELlen;
+    } else if (station == BAZ) {
+      currFuncTime = *BAZtimes;
+      currFunLen = BAZlen;
     }
     Serial.begin(9600);
     delay(10000);
@@ -181,17 +187,20 @@ void loop() {
     // state machine (segement setup, function setup, load data)
     if (curr_state == seqCheck) {
         // check if sequence is over
-        if (seq_count < sizeof(seq)/sizeof(seq[0])) {
+        if (seq_count < 8) {
             // find next valid function
+            Serial.println(seq_count);
             if (seq[seq_num][seq_count].name == station) {
                 // move to next state with assigned function
                 currStartTime = seq[seq_num][seq_count].startTime + seqstart[seq_num];
                 next_state = funCheck;
+                seq_count = seq_count + 1;
             } else {
                 // not found so check next
-                seq_count++;
+                seq_count = seq_count + 1;
             }
         } else {
+            Serial.println("End");
             // end 
             exit(0);
         }
@@ -223,7 +232,10 @@ void loop() {
               };
             } else if (clk_count == (currFuncTime[fun_count] + currStartTime - 9)) {
               next_state = loadBit;
+              Serial.print(clk_count);
+              Serial.print("(");
               Serial.print(clk_count - currStartTime);
+              Serial.print(")");
               Serial.print(": ");
               Serial.println("Enable Out");
               digitalWrite(en, HIGH);
@@ -232,7 +244,10 @@ void loop() {
               } else {
                 dataString = String(currFuncTime[fun_count + 1]);
               };
+              Serial.print(clk_count);
+              Serial.print("(");
               Serial.print(clk_count - currStartTime);
+              Serial.print(")");
               Serial.print(": ");
               Serial.println(dataString.charAt(ser_count));
               if (dataString.charAt(ser_count) == '0') {
@@ -244,13 +259,17 @@ void loop() {
             };
         } else {
           // return to seq_check
+          fun_count = 0;
           next_state = seqCheck;
         };
     } else if (curr_state == loadBit) {
         if (ser_count == 8) {
             // return to funCheck and increment function
             ser_count = 0;
+            Serial.print(clk_count);
+            Serial.print("(");
             Serial.print(clk_count - currStartTime);
+            Serial.print(")");
             Serial.print(": ");
             Serial.println("End Out");
             digitalWrite(en, LOW);
@@ -260,19 +279,26 @@ void loop() {
             // check for dpsk
             if (ser_count == 1) { // dpsk
               // output current bit
+              Serial.print(clk_count);
+              Serial.print("(");
               Serial.print(clk_count - currStartTime);
+              Serial.print(")");
               Serial.print(": ");
-              Serial.println(dataString.charAt(ser_count)); 
               if (dataString.charAt(ser_count) == dpsk) {
                 digitalWrite(data, LOW);
+                Serial.println(0);
               } else {
                 digitalWrite(data, HIGH);
+                Serial.println(1);
               };
               dpsk = dataString.charAt(ser_count);
               ser_count++;
             } else { // normal
               // output current bit
+              Serial.print(clk_count);
+              Serial.print("(");
               Serial.print(clk_count - currStartTime);
+              Serial.print(")");
               Serial.print(": ");
               Serial.println(dataString.charAt(ser_count));
               if (dataString.charAt(ser_count) == '0') {
