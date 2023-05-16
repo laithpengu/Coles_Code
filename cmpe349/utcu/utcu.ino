@@ -57,10 +57,78 @@ int AZtimes[23][2] =    {{0, 10000001}, // preamble
             {15560, 00000000},
             {15900, 00000000}};  // end fro
 
-function az1 = {AZ, 200};
-function seq1[] = {az1};
-function* seq[] = {seq1};
+//pg 6 annex 10
+// BAZ Function 1001001
+int BAZlen = 23;
+int BAZtimes[23][2] = {{0, 10000001}, // preamble
+          {832, 11000000}, // barker code
+          {896, 11000000},
+          {960, 11000000},
+          {1024, 10000000},
+          {1088, 11000000},
+          {1152, 11000000}, // function ID 1001001
+          {1216, 10000000},
+          {1280, 10000000},
+          {1344, 11000000},
+          {1408, 10000000},
+          {1472, 10000000},
+          {1536, 11000000},
+          {1600, 00000000}, // end preamble
+          {2048, 10000011}, // rear oci
+          {2176, 10000101}, // left oci
+          {2304, 10000111}, // right oci
+          {2432, 00000001}, // to test
+          {2560, 10111011}, // to scan
+          {6760, 00000000}, // pause
+          {7360, 10010000}, // fro scan
+          {11560, 00000001},
+          {11688, 00000000}};  // end fro
 
+// EL Function 1100001
+int ELlen = 19;
+int ELtimes[19][2] = {{0, 10000000}, // preamble
+	        {832, 11000000}, // barker code
+	        {896, 11000000},
+        	{960, 11000000},
+        	{1024, 10000000},
+        	{1088, 11000000},
+        	{1152, 11000000}, // function ID 1100001
+        	{1216, 11000000},
+        	{1280, 10000000},
+        	{1344, 10000000},
+        	{1408, 10000000},
+        	{1472, 10000000},
+        	{1536, 11000000},
+          {1600, 00000000}, // end preamble
+          {1728, 10000011}, //OCI
+          {1856, 10111011}, // TO scan
+          {3406, 00000000}, //Pause
+          {3806, 10010000}, // FRO scan
+          {5356, 00000000}};  // End function ground
+
+// define seq1
+function seq1[] = {{EL, 0},
+                  {EMPTY, 5600},
+                  {AZ, 10900},
+                  {EMPTY, 26800},
+                  {EL, 32100},
+                  {BAZ, 37700}, // 49600
+                  {EL, 55800},
+                  {EMPTY, 61400}};
+
+// define seq2
+function seq2[] = {{EL, 0},
+                  {EMPTY, 5600},
+                  {AZ, 10900},
+                  {EMPTY, 26800},
+                  {EL, 32100},
+                  // {DW1, 37700}, // add data word
+                  {EL, 55800},
+                  {EMPTY, 61400}};
+
+// define whole sequence
+function* seq[] = {seq1, seq2};
+int seqstart[] = {0, 67700};
 
 
 
@@ -83,6 +151,7 @@ int currStartTime;            // start of current function
 int* currFuncTime;            // array of function timing
 int currFunLen;               // len of current function
 String dataString;            // current output string
+char dpsk;
 
 void setup() {
     pinMode(clk, OUTPUT);
@@ -97,6 +166,7 @@ void setup() {
     currStartTime = 0;
     dataString = "00000000";
     startMillis = millis();
+    dpsk = "0";
     if (station == AZ) {
       currFuncTime = *AZtimes;
       currFunLen = AZlen;
@@ -115,7 +185,7 @@ void loop() {
             // find next valid function
             if (seq[seq_num][seq_count].name == station) {
                 // move to next state with assigned function
-                currStartTime = seq[seq_num][seq_count].startTime;
+                currStartTime = seq[seq_num][seq_count].startTime + seqstart[seq_num];
                 next_state = funCheck;
             } else {
                 // not found so check next
@@ -187,16 +257,31 @@ void loop() {
             fun_count = fun_count + 2;
             next_state = funCheck;
         } else {
-            // output current bit
-            Serial.print(clk_count - currStartTime);
-            Serial.print(": ");
-            Serial.println(dataString.charAt(ser_count));
-            if (dataString.charAt(ser_count) == '0') {
-              digitalWrite(data, LOW);
-            } else {
-              digitalWrite(data, HIGH);
+            // check for dpsk
+            if (ser_count == 1) { // dpsk
+              // output current bit
+              Serial.print(clk_count - currStartTime);
+              Serial.print(": ");
+              Serial.println(dataString.charAt(ser_count)); 
+              if (dataString.charAt(ser_count) == dpsk) {
+                digitalWrite(data, LOW);
+              } else {
+                digitalWrite(data, HIGH);
+              };
+              dpsk = dataString.charAt(ser_count);
+              ser_count++;
+            } else { // normal
+              // output current bit
+              Serial.print(clk_count - currStartTime);
+              Serial.print(": ");
+              Serial.println(dataString.charAt(ser_count));
+              if (dataString.charAt(ser_count) == '0') {
+                digitalWrite(data, LOW);
+              } else {
+                digitalWrite(data, HIGH);
+              };
+              ser_count++;
             };
-            ser_count++;
         }
     }
 
