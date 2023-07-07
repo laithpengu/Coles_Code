@@ -1,5 +1,6 @@
 import random
 
+memInstructions = ["L.D", "S.D", "LW", "SW"]
 class cpu:
     def __init__(self, lines):
 
@@ -11,6 +12,7 @@ class cpu:
 
         self.p = True
         self.pc = 0
+        self.memLag = 0
         
         # init scoreboard storage with empty processes
         self.insf = process()
@@ -18,6 +20,7 @@ class cpu:
         self.ex = process()
         self.mem = process()
         self.wb = process()
+
         self.state = True
         self.run()
 
@@ -67,17 +70,58 @@ class cpu:
                             pass
                         
             if self.insd.getInst() != "empty": #instruction decode
-                if self.ex.getInst() == "empty":
-                    if self.mem.getInst() != "empty":
-                        # check for mem data conflicts
-                        if all(val not in self.mem.getVals() for val in self.insd.getVals()):
+                if self.memLag == 0:
+                    # load register data 
+                    args = self.insd.getArgs()
+                    match (self.insd.getInst):
+                        case "L.D":
+                            pass
+                        case "S.D":
+                            pass
+                        case "LI":
+                            pass
+                        case "LW":
+                            pass
+                        case "SW":
+                            pass
+                        case "ADD":
+                            pass
+                        case "ADDI":
+                            pass
+                        case "ADD.D":
+                            pass
+                        case "SUB.D":
+                            pass
+                        case "SUB":
+                            pass
+                        case "MUL.D":
+                            pass
+                        case "DIV.D":
+                            pass
+                        case "BEQ":
+                            pass
+                        case "BNE":
+                            pass
+                        case "J":
+                            pass
+                    if self.ex.getInst() == "empty":
+                        if self.mem.getInst() != "empty":
+                            # check for mem data conflicts
+                            if all(arg not in self.mem.getArgs() for arg in self.insd.getArgs()):
+                                self.ex = self.insd
+                                self.insd = process()
+                        else:
                             self.ex = self.insd
                             self.insd = process()
-                    else:
-                        self.ex = self.insd
-                        self.insd = process()
+                else:
+                    self.memLag -= 1        
+                
             if self.insf.getInst() != "empty": #instruction fetch
                 if self.insd.getInst() == "empty":
+                    # check for cache miss
+                    if self.insd.getInst() in memInstructions:
+                        args = self.insd.getArgs()
+                        addrSplit = args[1].replace(")", "").split("(")
                     # pass and load next
                     self.insd = self.insf
                     line = self.program[self.pc].replace("\t", "").replace("\n", "").split()
@@ -87,8 +131,8 @@ class cpu:
 
                     #create new process
                     self.insf = process(line[0])
-                    for num, val in enumerate(line[1].split(",")):
-                        self.insf.setVal(num, val)
+                    for num, arg in enumerate(line[1].split(",")):
+                        self.insf.setArg(num, arg)
                     self.pc += 1
                     if self.pc == len(lines):
                         self.state = False
@@ -163,9 +207,10 @@ class mem:
             print(str(addr) + ": " + str(data))
 
 class process:
-    def __init__(self, inst = "empty", val0 = "", val1 = "", val2 = ""):
+    def __init__(self, inst = "empty", arg0 = "", arg1 = "", arg2 = ""):
         self.inst = inst
-        self.vals = [val0, val1, val2]
+        self.args = [arg0, arg1, arg2]
+        self.memLag = 0
         match (inst):
             case "ADD.D":
                 self.wait = 1
@@ -181,17 +226,23 @@ class process:
     def getInst(self):
         return self.inst
     
-    def setVal(self, ind, val):
-        self.vals[ind] = val
+    def setArg(self, ind, arg):
+        self.args[ind] = arg
     
-    def getVals(self):
-        return self.vals
+    def getArgs(self):
+        return self.args
 
     def setWait(self, wait):
         self.wait = wait
 
     def getWait(self):
         return self.wait
+    
+    def setMemLag(self, val):
+        self.memLag = val
+
+    def getMemLag(self):
+        return self.memLag
 
 
 with open("program.txt") as f:
