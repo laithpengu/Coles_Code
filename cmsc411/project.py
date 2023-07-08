@@ -1,6 +1,5 @@
 import random
 
-memInstructions = ["L.D", "S.D", "LW", "SW"]
 class cpu:
     def __init__(self, lines):
 
@@ -13,7 +12,7 @@ class cpu:
         self.p = True
         self.pc = 0
         self.memLag = 0
-        
+        self.loopLoc = 0
         # init scoreboard storage with empty processes
         self.insf = process()
         self.insd = process()
@@ -21,6 +20,18 @@ class cpu:
         self.mem = process()
         self.wb = process()
 
+        # load first line
+        line = self.program[self.pc].replace("\t", "").replace("\n", "").split()
+        if "Loop"  in line[0]:
+            line.remove(0)
+                # start branch point
+        #create new process
+        self.insf = process(line[0])
+        for num, arg in enumerate(line[1].split(",")):
+            self.insf.setArg(num, arg)
+        self.pc += 1
+
+        # start
         self.state = True
         self.run()
 
@@ -29,119 +40,135 @@ class cpu:
         while self.state:
             # run through scoreboard
             if self.wb.getInst() != "empty": #write back
-                pass
+                # if branch was false reset to return loc
+                if self.wb.getJump() == False and self.wb.getJumpLoc() != 1000:
+                    self.pc = self.wb.getJumpLoc()
+                    self.mem = process()
+                    self.ex = process()
+                    self.insf = process()
+                    self.insd = process()
+                self.wb = process()
             if self.mem.getInst() != "empty": #memory access
-                pass
+                # wait if there is mem delay
+                if self.mem.getMemLag() != 0:
+                    self.mem.setMemLag(self.mem.getMemLag() - 1)
+                else:
+                    # load on mem instructions
+                    if self.mem.getInst() in ["L.D", "S.D", "LI", "LW", "SW"]:
+                        args = self.mem.getArgs()
+                        match (self.mem.getInst()):
+                            case "L.D":
+                                addrSplit = args[1].replace(")", "").split("(")
+                                if "$" in addrSplit[1]:
+                                    addrSplit[1] = self.irs[int(addrSplit[1].replace("$", ""))]
+                                self.fprs[int(args[0].replace("F", ""))] = self.cache.read(int(addrSplit[0]) + int(addrSplit[1]))
+                            case "S.D":
+                                addrSplit = args[1].replace(")", "").split("(")
+                                if "$" in addrSplit[1]:
+                                    addrSplit[1] = self.irs[int(addrSplit[1].replace("$", ""))]
+                                self.cache.write((int(addrSplit[0]) + int(addrSplit[1])), self.fprs[int(args[0].replace("F", ""))])
+                            case "LI":
+                                self.irs[int(args[0].replace("$", ""))] = int(args[1])
+                            case "LW":
+                                addrSplit = args[1].replace(")", "").split("(")
+                                self.irs[int(args[0].replace("$", ""))] = self.cache.read(int(addrSplit[0]) + int(addrSplit[1]))
+                            case "SW":
+                                addrSplit = args[1].replace(")", "").split("(")
+                                self.cache.write((int(addrSplit[0]) + int(addrSplit[1])), self.irs[int(args[0].replace("$", ""))])
+                    if self.wb.getInst() == "empty":
+                        self.wb = self.mem
+                        self.mem = process()
             if self.ex.getInst() != "empty": #execute
                 # wait for execution to finish
                 if self.ex.getWait() != 0:
-                    self.ex.setWait = self.ex.getWait - 1
-                else:
-                    match (self.ex.getInst):
-                        case "L.D":
-                            pass
-                        case "S.D":
-                            pass
-                        case "LI":
-                            pass
-                        case "LW":
-                            pass
-                        case "SW":
-                            pass
+                    self.ex.setWait(self.ex.getWait() - 1)
+                elif self.mem.getInst() == "empty":
+                    args = self.ex.getArgs()
+                    # check for cache miss
+                    if self.ex.getInst() in ["L.D", "S.D", "LW", "SW"]:
+                        addrSplit = args[1].replace(")", "").split("(")
+                        if "$" in addrSplit[1]:
+                            addrSplit[1] = self.irs[int(addrSplit[1].replace("$", ""))]
+                        if self.cache.contains(str(int(addrSplit[0]) + int(addrSplit[1]))) == False:
+                            self.ex.setMemLag(2)
+                    # execute
+                    match (self.ex.getInst()):
                         case "ADD":
-                            pass
+                            self.irs[int(args[0].replace("$", ""))] = self.irs[int(args[1].replace("$", ""))] + self.irs[int(args[2].replace("$", ""))]
                         case "ADDI":
-                            pass
+                            self.irs[int(args[0].replace("$", ""))] = self.irs[int(args[1].replace("$", ""))] + int(args[2])
                         case "ADD.D":
-                            pass
+                            self.fprs[int(args[0].replace("F", ""))] = self.fprs[int(args[1].replace("F", ""))] + self.fprs[int(args[2].replace("F", ""))]
                         case "SUB.D":
-                            pass
+                            self.fprs[int(args[0].replace("F", ""))] = self.fprs[int(args[1].replace("F", ""))] - self.fprs[int(args[2].replace("F", ""))]
                         case "SUB":
-                            pass
+                            self.irs[int(args[0].replace("$", ""))] = self.irs[int(args[1].replace("$", ""))] - self.irs[int(args[2].replace("$", ""))]
                         case "MUL.D":
-                            pass
+                            self.fprs[int(args[0].replace("F", ""))] = self.fprs[int(args[1].replace("F", ""))] * self.fprs[int(args[2].replace("F", ""))]
                         case "DIV.D":
-                            pass
+                            self.fprs[int(args[0].replace("F", ""))] = self.fprs[int(args[1].replace("F", ""))] / self.fprs[int(args[2].replace("F", ""))]
                         case "BEQ":
-                            pass
+                            self.ex.setJumpLoc(self.pc)
+                            if args[2] == "Loop":
+                                self.pc = self.loopLoc
+                            else:
+                                self.pc = int(args[2].replace("OFF", "")) + self.pc
+                            if self.irs[int(args[0].replace("$", ""))] == self.irs[int(args[1].replace("$", ""))]:
+                                self.ex.setJump(True)
                         case "BNE":
-                            pass
+                            self.ex.setJumpLoc(self.pc)
+                            if args[2] == "Loop":
+                                self.pc = self.loopLoc
+                            else:
+                                self.pc = int(args[2].replace("OFF", "")) + self.pc
+                            if self.irs[int(args[0].replace("$", ""))] != self.irs[int(args[1].replace("$", ""))]:
+                                self.ex.setJump(True)
                         case "J":
-                            pass
+                            self.pc = int(args[0].replace("ADDR", ""))
+                    self.mem = self.ex
+                    self.ex = process()
                         
             if self.insd.getInst() != "empty": #instruction decode
-                if self.memLag == 0:
-                    # load register data 
-                    args = self.insd.getArgs()
-                    match (self.insd.getInst):
-                        case "L.D":
-                            pass
-                        case "S.D":
-                            pass
-                        case "LI":
-                            pass
-                        case "LW":
-                            pass
-                        case "SW":
-                            pass
-                        case "ADD":
-                            pass
-                        case "ADDI":
-                            pass
-                        case "ADD.D":
-                            pass
-                        case "SUB.D":
-                            pass
-                        case "SUB":
-                            pass
-                        case "MUL.D":
-                            pass
-                        case "DIV.D":
-                            pass
-                        case "BEQ":
-                            pass
-                        case "BNE":
-                            pass
-                        case "J":
-                            pass
-                    if self.ex.getInst() == "empty":
-                        if self.mem.getInst() != "empty":
-                            # check for mem data conflicts
-                            if all(arg not in self.mem.getArgs() for arg in self.insd.getArgs()):
-                                self.ex = self.insd
-                                self.insd = process()
-                        else:
+                if self.ex.getInst() == "empty":
+                    if self.mem.getInst() != "empty":
+                        # check for mem data conflicts
+                        if all(arg not in self.mem.getArgs() for arg in self.insd.getArgs()):
                             self.ex = self.insd
                             self.insd = process()
-                else:
-                    self.memLag -= 1        
+                    else:
+                        self.ex = self.insd
+                        self.insd = process()
                 
             if self.insf.getInst() != "empty": #instruction fetch
                 if self.insd.getInst() == "empty":
-                    # check for cache miss
-                    if self.insd.getInst() in memInstructions:
-                        args = self.insd.getArgs()
-                        addrSplit = args[1].replace(")", "").split("(")
-                    # pass and load next
+                    # pass
                     self.insd = self.insf
-                    line = self.program[self.pc].replace("\t", "").replace("\n", "").split()
-                    if "Loop"  in line[0]:
-                        line.remove(0)
-                        # start branch point
-
-                    #create new process
-                    self.insf = process(line[0])
-                    for num, arg in enumerate(line[1].split(",")):
-                        self.insf.setArg(num, arg)
-                    self.pc += 1
-                    if self.pc == len(lines):
-                        self.state = False
+                    if self.pc != len(lines):
+                        #load next
+                        line = self.program[self.pc].replace("\t", "").replace("\n", "").split()
+                        if "Loop" in line[0]:
+                            line.remove("Loop:")
+                            self.loopLoc = self.pc
+                        #create new process
+                        self.insf = process(line[0])
+                        for num, arg in enumerate(line[1].split(",")):
+                            self.insf.setArg(num, arg)
+                        self.pc += 1
+                    else:
+                        self.insf = process()
+            if self.pc == len(lines) and (self.insf.getInst() == "empty" and self.insf.getInst() == "empty" and self.ex.getInst() == "empty" and 
+                                          self.mem.getInst() == "empty" and self.wb.getInst() == "empty"):
+                self.state = False
         self.close()
 
     # print results on end (and debug)
     def close(self):
         print("Register Data:")
-        for addr, data in enumerate(self.regs):
+        print("Int Regs:")
+        for addr, data in enumerate(self.irs):
+            print(str(addr) + ": " + str(data))
+        print("Floating Point Regs:")
+        for addr, data in enumerate(self.fprs):
             print(str(addr) + ": " + str(data))
         self.cache.close()
 
@@ -163,17 +190,18 @@ class l1Cache:
             self.dirty[loc] = True
         else:
             if 20 in self.addrs:
-                for ind in self.addrs:
-                    if ind == 20:
-                        self.sets[ind] = data
-                        self.dirty[ind] = True
+                for loc, storedAddr in enumerate(self.addrs):
+                    if storedAddr == 20:
+                        self.sets[loc] = data
+                        self.dirty[loc] = True
+                        self.addrs[loc] = addr
             else:
                 loc = random.randint(0, 3)
                 if self.dirty[loc] == True:
                     self.mem.write(self.addrs[loc], self.sets[loc])
-                loc = self.addrs.index(addr)
                 self.sets[loc] = data
                 self.dirty[loc] = True
+                self.addrs[loc] = addr
 
     def read(self, addr):
         if addr in self.addrs:
@@ -183,6 +211,12 @@ class l1Cache:
             data = self.mem.read(addr)
             self.write(addr, data)
             return data
+    
+    def contains(self, addr):
+        if addr in self.addrs:
+            return True
+        else:
+            return False
 
     def close(self): 
         print("Cache Data:")
@@ -211,6 +245,9 @@ class process:
         self.inst = inst
         self.args = [arg0, arg1, arg2]
         self.memLag = 0
+        self.result = 0
+        self.jump = False
+        self.jumpLoc = 1000
         match (inst):
             case "ADD.D":
                 self.wait = 1
@@ -243,8 +280,20 @@ class process:
 
     def getMemLag(self):
         return self.memLag
+    
+    def setJump(self, jump):
+        self.jump = jump
+
+    def getJump(self):
+        return self.jump
+
+    def setJumpLoc(self, loc):
+        self.jumpLoc = loc
+
+    def getJumpLoc(self):
+        return self.jumpLoc
 
 
-with open("program.txt") as f:
+with open("C:\Coles_Code\cmsc411\program.txt") as f:
     lines = f.readlines()
 out = cpu(lines)
